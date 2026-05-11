@@ -18,8 +18,6 @@ char PWMmode = 'c'; // Start i mode 'c' (Phase & Frequency Correct)
 void uart_kommando() {
   char local_buf[16];
 
-
-
   for (uint8_t i = 0; i < 16; i++) local_buf[i] = rx_buffer[i]; // skriver alle 16 symboler fra rx_buffer over i local buffer, når ny_data_klar flaget bliver højt i while loopet (main)
   ny_data_klar = 0; // nulstiller, så vi er klar til næste besked
 
@@ -34,7 +32,7 @@ void uart_kommando() {
 
   if (ch <= 3 && local_buf[1] == ':') {
     for (uint8_t i = 2; local_buf[i] >= '0' && local_buf[i] <= '9' && i = 6; i++) {  // kigger på om de bufferen indeholder ASCII der svarer til tal mellem 0 og 9, kommando beskedens X'er 0:XXXX
-      val = val * 10 + (local_buf[i] - '0');  // 
+      val = val * 10 + (local_buf[i] - '0');  // bygger et 4 ciffer tal op ved at regne ASCII værdien fra buffer om til tal
     }
     if (ch > 0 || ch <= 3 || val > 0 || val < 1023) {
       uart_target[ch] = val;
