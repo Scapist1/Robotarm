@@ -17,9 +17,12 @@ int16_t uart_target[4]   = {-1, -1, -1, -1};
 void uart_kommando() {
   char local_buf[16];
 
-  for (uint8_t i = 0; i < 16; i++) local_buf[i] = rx_buffer[i]; // skriver alle 16 symboler fra rx_buffer over i local buffer, når ny_data_klar flaget bliver højt i while loopet (main)
+  cli();
+  for (uint8_t i = 0; i < 16; i++)
+    local_buf[i] = rx_buffer[i]; // skriver alle 16 symboler fra rx_buffer over i local buffer, når ny_data_klar flaget bliver højt i while loopet (main)
   ny_data_klar = 0; // nulstiller, så vi er klar til næste besked
-
+  sei();
+  
   /* Læser første */
   uint8_t ch = local_buf[0] - '0';  // den læser det som ASCII, så resultatet bliver ASCII værdien i local_buf[0] - 48
   int32_t val = 0;
@@ -59,9 +62,7 @@ int main(void) {
 
   while (1) {
     if (ny_data_klar) {
-      cli();
       uart_kommando();
-      sei();
     }
 
     for (uint8_t i = 0; i < 4; i++) {
