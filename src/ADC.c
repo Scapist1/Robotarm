@@ -14,7 +14,6 @@ void init_ADC() {
 
 ISR(TIMER0_COMPA_vect)  { // starter sampling
   ADMUX = (1 << REFS0) | (current_ch & 0x07); // Vælg den aktuelle kanal i ADMUX (bevar REFS0) 
-  _delay_us(10); // Give the MUX a moment to settle
   ADCSRA |= (1 << ADSC);  // Start konvertering (Sæt ADSC bit)
 }
 
