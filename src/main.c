@@ -76,7 +76,7 @@ int main(void) {
       int16_t raw_joy = joystick_values[i];
       sei();
 
-      // --- Easing / Joystick Logik ---
+      /* Easing logik til at ændre tal fra monitor eller joystick løbende */
       if (uart_target[i] >= 0) {
         int16_t diff = uart_target[i] - smooth_values[i];
         if (diff > 0) {
@@ -112,26 +112,27 @@ int main(void) {
       if (i == 2) OCR4A = pwm;
       if (i == 3) OCR5A = pwm;
 
+      // --- Beregning af Duty Cycle (0.0% - 100.0%) ---
+      // Da vi kører Mode C med en TOP på 20000, svarer:
+      // (pwm / 20000) * 100 * 10  =>  pwm / 20
+      uint16_t duty_x10 = pwm / 20; 
+
+      uint16_t heltallig = duty_x10 / 10; // Henter tallene før kommaet (f.eks. 7)
+      uint16_t decimal   = duty_x10 % 10; // Henter det sidste tal (f.eks. 5)
+
+      // --- Udskrivning til OLED ---
+      // %2d sørger for at tallet altid fylder 2 pladser (pænt på række)
+      // .%1d tilføjer punktum og den enkelte decimal
+      sprintf(buffer, "%2d.%1d%% ", heltallig, decimal);
+      sendStrXY(buffer, i + 2, 11);
     }
     
     _delay_ms(10); // Gør easing jævn og forhindrer OLED I2C spam
 
     // --- Display opdatering ---
-    sprintf(buffer, " %d  %4d", i, smooth_values[i]);
-    sendStrXY(buffer, i + 2, 3);
-    
-    // --- Beregning af Duty Cycle (0.0% - 100.0%) ---
-    // Da vi kører Mode C med en TOP på 20000, svarer:
-    // (pwm / 20000) * 100 * 10  =>  pwm / 20
-    uint16_t duty_x10 = pwm / 20; 
-
-    uint16_t heltallig = duty_x10 / 10; // Henter tallene før kommaet (f.eks. 7)
-    uint16_t decimal   = duty_x10 % 10; // Henter det sidste tal (f.eks. 5)
-
-    // --- Udskrivning til OLED ---
-    // %2d sørger for at tallet altid fylder 2 pladser (pænt på række)
-    // .%1d tilføjer punktum og den enkelte decimal
-    sprintf(buffer, "%2d.%1d%% ", heltallig, decimal);
-    sendStrXY(buffer, i + 2, 9);
+    for(uint8_t i = 0; i <= 3; i++) {
+      sprintf(buffer, "%4d", smooth_values[i]);
+      sendStrXY(buffer, i + 2, 3);
+    }
   }
 }
