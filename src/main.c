@@ -82,12 +82,14 @@ int main(void) {
         if (diff > 0) {
           smooth_values[i] += (diff / 16) + 1;
           if (smooth_values[i] >= uart_target[i]) {
-            smooth_values[i] = uart_target[i]; uart_target[i] = -1; 
+            smooth_values[i] = uart_target[i]; 
+            uart_target[i] = -1; 
           }
         } else if (diff < 0) {
           smooth_values[i] += (diff / 16) - 1;
           if (smooth_values[i] <= uart_target[i]) { 
-            smooth_values[i] = uart_target[i]; uart_target[i] = -1; 
+            smooth_values[i] = uart_target[i]; 
+            uart_target[i] = -1; 
           }
         } else { uart_target[i] = -1; }
       } 
