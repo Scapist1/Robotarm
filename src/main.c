@@ -14,28 +14,29 @@ int16_t smooth_values[4] = {512, 512, 512, 512};
 int16_t uart_target[4]   = {-1, -1, -1, -1};
 char PWMmode = 'c'; // Start i mode 'c' (Phase & Frequency Correct)
 
+/* Benyttes i while loopet til at læse data fra UART til de rigtige steder når ny_data_klar flaget bliver sat højt */
 void uart_kommando() {
   char local_buf[16];
-  for (uint8_t i = 0; i < 16; i++) local_buf[i] = rx_buffer[i];
-  ny_data_klar = 0;
 
-  // printString(local_buf);
-  // printString("\r\n");
 
-  // Tjek om det er et bogstav (PWM mode skift)
-  if (local_buf[0] >= 'a' && local_buf[0] <= 'd' && local_buf[1] == '\0') {
-    PWMmode = local_buf[0];
+
+  for (uint8_t i = 0; i < 16; i++) local_buf[i] = rx_buffer[i]; // skriver alle 16 symboler fra rx_buffer over i local buffer, når ny_data_klar flaget bliver højt i while loopet (main)
+  ny_data_klar = 0; // nulstiller, så vi er klar til næste besked
+
+  if (local_buf[0] >= 'a' && local_buf[0] <= 'd' && local_buf[1] == '\0') {  // Tjekker om det er a, b, c, d (PWM mode skift)
+    PWMmode = local_buf[0]; // sætter PWMmode a, b, c eller d
     return;
   }
 
-  // Tjek om det er en servo kommando (f.eks. 0:512)
-  uint8_t ch = local_buf[0] - '0';
+  /* Læser første */
+  uint8_t ch = local_buf[0] - '0';  // den læser det som ASCII, så resultatet bliver ASCII værdien i local_buf[0] - 48
   int16_t val = 0;
+  
   if (ch <= 3 && local_buf[1] == ':') {
     for (uint8_t i = 2; local_buf[i] >= '0' && local_buf[i] <= '9'; i++) {
       val = val * 10 + (local_buf[i] - '0');
     }
-    if (val <= 1023) {
+    if (ch > 0 || ch >= 3 || val > 0 || val < 1023) {
       uart_target[ch] = val;
     }
   }
@@ -76,10 +77,14 @@ int main(void) {
         int16_t diff = uart_target[i] - smooth_values[i];
         if (diff > 0) {
           smooth_values[i] += (diff / 16) + 1;
-          if (smooth_values[i] >= uart_target[i]) { smooth_values[i] = uart_target[i]; uart_target[i] = -1; }
+          if (smooth_values[i] >= uart_target[i]) {
+            smooth_values[i] = uart_target[i]; uart_target[i] = -1; 
+          }
         } else if (diff < 0) {
           smooth_values[i] += (diff / 16) - 1;
-          if (smooth_values[i] <= uart_target[i]) { smooth_values[i] = uart_target[i]; uart_target[i] = -1; }
+          if (smooth_values[i] <= uart_target[i]) { 
+            smooth_values[i] = uart_target[i]; uart_target[i] = -1; 
+          }
         } else { uart_target[i] = -1; }
       } 
       else if (raw_joy < 500 || raw_joy > 524) {
