@@ -31,7 +31,7 @@ void uart_kommando() {
   int16_t val = 0;
 
   if (ch <= 3 && local_buf[1] == ':') {
-    for (uint8_t i = 2; local_buf[i] >= '0' && local_buf[i] <= '9' && i = 6; i++) {  // kigger på om de bufferen indeholder ASCII der svarer til tal mellem 0 og 9, kommando beskedens X'er 0:XXXX
+    for (uint8_t i = 2; local_buf[i] >= '0' && local_buf[i] <= '9' && i == 6; i++) {  // kigger på om de bufferen indeholder ASCII der svarer til tal mellem 0 og 9, kommando beskedens X'er 0:XXXX
       val = val * 10 + (local_buf[i] - '0');  // bygger et 4 ciffer tal op ved at regne ASCII værdien fra buffer om til tal
     }
     if (ch > 0 || ch <= 3 || val > 0 || val < 1023) {
@@ -55,6 +55,12 @@ int main(void) {
   uart0_Init(16); // 115200 baud
   
   printString("[ Skriv 0:1023 for servo eller a,b,c,d for PWM mode ]\r\n");
+
+  /* Sætter tal indikator ud for værdier på display (0, 1, 2, 3) */
+  for(uint8_t i = 0; i <= 3; i++) {
+      sprintf(buffer, "%d", i);
+      sendStrXY(buffer, i + 2, 1);
+  }
 
   sei();
 
@@ -95,14 +101,10 @@ int main(void) {
 
       // --- PWM Beregning ---
       uint16_t pwm;
-      if (PWMmode == 'd') {
-        // Mode D er 8-bit (0-255)
-        pwm = (uint16_t)(((uint32_t)smooth_values[i] * 255) / 1023);
-      } else {
-        // Standard servo range (500-2500) til 50Hz
-        uint32_t temp = (uint32_t)smooth_values[i] * 2000;
-        pwm = (uint16_t)(temp / 1023) + 500;
-      }
+
+      // Standard servo range (500-2500) til 50Hz
+      uint32_t temp = (uint32_t)smooth_values[i] * 2000;
+      pwm = (uint16_t)(temp / 1023) + 500;
 
       // Opdater registre
       if (i == 0) OCR1A = pwm;
@@ -110,27 +112,26 @@ int main(void) {
       if (i == 2) OCR4A = pwm;
       if (i == 3) OCR5A = pwm;
 
-      // --- Display opdatering ---
-      sprintf(buffer, " %d  %4d", i, smooth_values[i]);
-      sendStrXY(buffer, i + 2, 0);
-      
-      uint16_t duty_x10; // Vi gemmer procenten ganget med 10 (f.eks. 7.5% bliver til 75)
-
-      if (PWMmode == 'd') {
-          duty_x10 = ((uint32_t)pwm * 1000) / 255;
-      } else {
-          // Da 20000 / 1000 = 20, svarer pwm / 20 til duty * 10
-          duty_x10 = pwm / 20; 
-      }
-
-      uint16_t heltallig = duty_x10 / 10; // Får f.eks. 7
-      uint16_t decimal   = duty_x10 % 10; // Får f.eks. 5
-
-      // Udskriv to heltal med et punktum imellem
-      sprintf(buffer, "%2d.%1d%% ", heltallig, decimal);
-      sendStrXY(buffer, i + 2, 9);
     }
     
     _delay_ms(10); // Gør easing jævn og forhindrer OLED I2C spam
+
+    // --- Display opdatering ---
+    sprintf(buffer, " %d  %4d", i, smooth_values[i]);
+    sendStrXY(buffer, i + 2, 3);
+    
+    // --- Beregning af Duty Cycle (0.0% - 100.0%) ---
+    // Da vi kører Mode C med en TOP på 20000, svarer:
+    // (pwm / 20000) * 100 * 10  =>  pwm / 20
+    uint16_t duty_x10 = pwm / 20; 
+
+    uint16_t heltallig = duty_x10 / 10; // Henter tallene før kommaet (f.eks. 7)
+    uint16_t decimal   = duty_x10 % 10; // Henter det sidste tal (f.eks. 5)
+
+    // --- Udskrivning til OLED ---
+    // %2d sørger for at tallet altid fylder 2 pladser (pænt på række)
+    // .%1d tilføjer punktum og den enkelte decimal
+    sprintf(buffer, "%2d.%1d%% ", heltallig, decimal);
+    sendStrXY(buffer, i + 2, 9);
   }
 }
