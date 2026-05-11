@@ -12,7 +12,6 @@
 // Globale variabler
 int16_t smooth_values[4] = {512, 512, 512, 512};
 int16_t uart_target[4]   = {-1, -1, -1, -1};
-char PWMmode = 'c'; // Start i mode 'c' (Phase & Frequency Correct)
 
 /* Benyttes i while loopet til at læse data fra UART til de rigtige steder når ny_data_klar flaget bliver sat højt */
 void uart_kommando() {
@@ -41,7 +40,6 @@ int main(void) {
   init_ADC();
   init_timer0();
   
-  // Initialiser state machine med start-mode
   PWM_ph_fr_init();
 
   I2C_Init();
@@ -61,17 +59,20 @@ int main(void) {
 
   while (1) {
     if (ny_data_klar) {
-      uart_kommando(); 
+      cli();
+      uart_kommando();
+      sei();
     }
 
     for (uint8_t i = 0; i < 4; i++) {
       cli();
-      int16_t raw_joy = joystick_values[i];
+      int16_t raw_joy = joystick_values[i]; //atomic
       sei();
 
       /* Easing logik til at ændre tal fra monitor eller joystick løbende */
+      // UART
       if (uart_target[i] >= 0) {
-        int16_t diff = uart_target[i] - smooth_values[i];
+        int16_t diff = uart_target[i] - smooth_values[i]; //Tager højde for nuværende position
         if (diff > 0) {
           smooth_values[i] += (diff / 16) + 1;
           if (smooth_values[i] >= uart_target[i]) {
@@ -86,6 +87,8 @@ int main(void) {
           }
         } else { uart_target[i] = -1; }
       } 
+
+      //Joystick 
       else if (raw_joy < 500 || raw_joy > 524) {
         if (raw_joy > 524) smooth_values[i] += (raw_joy - 512) / 128;
         else smooth_values[i] -= (512 - raw_joy) / 128;
@@ -98,7 +101,7 @@ int main(void) {
       uint16_t pwm = (uint16_t)(((uint32_t)smooth_values[i] * 2000) / 1023) + 500;
 
       // Opdater registrer
-      if (i == 0) OCR1A = pwm;
+      if (i == 0) OCR1A = pwm; // behøver ikk wrappe i cli(); og sei(); da AVR ifølge datasheetet har et dedikeret 8-bit TEMP register, så det er kun for READ af 16-bits vi skal, ikke for WRITES.
       if (i == 1) OCR3A = pwm;
       if (i == 2) OCR4A = pwm;
       if (i == 3) OCR5A = pwm;
