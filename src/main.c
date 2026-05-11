@@ -21,11 +21,6 @@ void uart_kommando() {
   for (uint8_t i = 0; i < 16; i++) local_buf[i] = rx_buffer[i]; // skriver alle 16 symboler fra rx_buffer over i local buffer, når ny_data_klar flaget bliver højt i while loopet (main)
   ny_data_klar = 0; // nulstiller, så vi er klar til næste besked
 
-  if (local_buf[0] >= 'a' && local_buf[0] <= 'd' && local_buf[1] == '\0') {  // Tjekker om det er a, b, c, d (PWM mode skift)
-    PWMmode = local_buf[0]; // sætter PWMmode a, b, c eller d
-    return;
-  }
-
   /* Læser første */
   uint8_t ch = local_buf[0] - '0';  // den læser det som ASCII, så resultatet bliver ASCII værdien i local_buf[0] - 48
   int32_t val = 0;
@@ -47,14 +42,14 @@ int main(void) {
   init_timer0();
   
   // Initialiser state machine med start-mode
-  run_state_machine(&PWMmode);
-  
+  PWM_ph_fr_init();
+
   I2C_Init();
   clear_display();
   InitializeDisplay();
   uart0_Init(16); // 115200 baud
   
-  printString("[ Skriv 0:1023 for servo eller a,b,c,d for PWM mode ]\r\n");
+  printString("[ Skriv fx 0:1023 for servo 0, position 1023 ]\r\n");
 
   /* Sætter tal indikator ud for værdier på display (0, 1, 2, 3) */
   for(uint8_t i = 0; i <= 3; i++) {
@@ -68,8 +63,6 @@ int main(void) {
     if (ny_data_klar) {
       uart_kommando(); 
     }
-
-    run_state_machine(&PWMmode); // Opdater timere hvis PWMmode er ændret
 
     for (uint8_t i = 0; i < 4; i++) {
       cli();
@@ -101,7 +94,7 @@ int main(void) {
         if (smooth_values[i] < 0)    smooth_values[i] = 0;
       }
 
-      // Beregn PWM (Mode C: 500-2500 for servo)
+      // Beregn PWM (Ph_fr: 500-2500 for servo)
       uint16_t pwm = (uint16_t)(((uint32_t)smooth_values[i] * 2000) / 1023) + 500;
 
       // Opdater registrer

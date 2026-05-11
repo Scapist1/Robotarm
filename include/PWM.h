@@ -3,18 +3,8 @@
 
 #include <avr/io.h>
 
-// 1. Definer selve enum-typen
-typedef enum {
-    init_state,
-    listen,
-    fastPWM,
-    phaseCorrectPWM,
-    ph_freq_corr,
-    phaseCorrectPWMalt
-} pwm_state_t;
-
-// 2. Prototyper så andre filer kan se dine funktioner
-void run_state_machine(char *data);
+// Prototyper så andre filer kan se dine funktioner
+void PWM_ph_fr_init();
 
 // Prototyper på dine init-funktioner (hvis de skal kaldes fra main)
 void init_ph_frPWM_1(void);
