@@ -187,11 +187,11 @@ void run_state_machine(char *data) {
 
             // 3. Initialiser baseret på den valgte state
             if (state == fastPWM) {
-                init_fastPWM_1(); init_fastPWM_2(); init_fastPWM_3(); init_fastPWM_4();
+                // init_fastPWM_1(); init_fastPWM_2(); init_fastPWM_3(); init_fastPWM_4();
                 printString("\r\n[ Mode a: Fast PWM aktiveret ]\r\n");
             } 
             else if (state == phaseCorrectPWM) {
-                init_phaseCorrectPWM_1(); init_phaseCorrectPWM_2(); init_phaseCorrectPWM_3(); init_phaseCorrectPWM_4();
+                // init_phaseCorrectPWM_1(); init_phaseCorrectPWM_2(); init_phaseCorrectPWM_3(); init_phaseCorrectPWM_4();
                 printString("\r\n[ Mode b: Phase Correct aktiveret ]\r\n");
             } 
             else if (state == ph_freq_corr) {
@@ -199,7 +199,7 @@ void run_state_machine(char *data) {
                 printString("\r\n[ Mode c: Phase & Frequency Correct aktiveret ]\r\n");
             } 
             else if (state == phaseCorrectPWMalt) {
-                init_phaseCorrectPWMalt_1(); init_phaseCorrectPWMalt_2(); init_phaseCorrectPWMalt_3(); init_phaseCorrectPWMalt_4();
+                // init_phaseCorrectPWMalt_1(); init_phaseCorrectPWMalt_2(); init_phaseCorrectPWMalt_3(); init_phaseCorrectPWMalt_4();
                 printString("\r\n[ Mode d: Phase Correct Alt (8-bit) aktiveret ]\r\n");
             }
 
