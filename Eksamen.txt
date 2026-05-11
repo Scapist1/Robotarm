@@ -1,0 +1,100 @@
+Spørgsmål til eksamen og besvarelser
+
+---------------------------------------------------
+
+1. Interfacing til microcontrollerens porte – giv kode eksempel på det gerne fra jeres opg. 5¸ der virker
+i Atmega2560 og forklar hvordan man læser og skriver til en port.
+
+Kode fra opgave 5:
+
+    Vi læser ikke direkte fra porten i vores kode, men vi bruger den perifere ADC på boardet til at læse på porten.
+    Det kan vi vise et eksempel på.
+
+    ADC procesbeskrivelse:
+        1. Multiplexer vælger hvilken port ADC skal kobles til
+        2. S&H fanger aktuel spænding
+        3. Komparator over 2.5 V proces (successive approximation) af hvert bit (10-bit ADC), imens S&H holder værdien fast
+
+    Koden:
+
+        void init_ADC() {
+        ADMUX = (1 << REFS0); // Reference spænding sat til 5V (AVCC) ("=" sætter REFS0 bit høj og resten lavt)
+        ADCSRA |= (1 << ADEN) | (1 << ADIE); // enable ADC and enable interrupt adc complete
+        ADCSRA |= (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0); // Scaling 16 Mhz to 125 kHz ADC clock frequency with prescaler 128
+        DIDR0 = 0xFF;  // Deaktiverer alle digitale input A0-A7 for at spare på strømmen
+        }
+
+        ISR(ADC_vect) { // henter resultat fra sampling
+        
+        joystick_values[current_ch] = ADC;
+
+        current_ch++;
+        if (current_ch > 3) current_ch = 0;
+        }
+
+Generelt om hvordan man læser og skriver til porte:
+
+    Porte er de interne 8-bit registre i microcontrolleren (Atmega2560), der styrer grupper af pins. En port (f.eks. Port B) styrer typisk op til 8 pins ad gangen.
+
+    De port registre vi skal kende for at styre dem direkte:
+        DDRn (Data Direction Register): Bestemmer om pinnen er INPUT (0) eller OUTPUT (1).
+        PORTn: Skriver data til pinnen (HØJ eller LAV).
+        PINn: Læser den fysiske tilstand på pinnen.
+
+    =   :   Overskriver alle 8 bits
+    eks.    DIDR0 = 0xFF;   // Deaktiverer alle digitale input A0-A7 (Port F) for at spare strøm (bits: 11111111)
+
+    DDRB |= (1 << 5)   :   Tænde pin uden at ændre de andre pins i samme port
+    eks.    DDRB |= (1 << PB5); // I funktionen init_ph_frPWM_1() skriver jeg til Data Directon Register for Port B, (PB (Port Bit) på 5 for læsbarhed, del af avr/io library)
+
+    &= ~    :   Bruges til at slukke for en specifik pin i en port
+
+---------------------------------------------------
+
+2. Serielle interfaces til microcontrolleren – hvilke slags seriel kommunikation kender du? Forskelle og
+ligheder mellem dem – hastighed. Giv relevant kode eksempel fra opg. 5¸ der virker i Atmega2560
+
+Serielle Kommunikationsformer:
+
+    UART
+        Koncept: Benyttes til at kommunikere mellem computer (f.eks. via serial monitor) og microcontroller
+        Data: Sender 8-bit data ad gangen pakket ind i en start-bit og en stop-bit.
+        Timing: Det fungere asynkront, så begge enheder skal være indstillet til samme baud rate, da der ikke er en fælles clock-ledning.
+        Pins: Kommunikere serielt via. TX (Transmit) og RX (Receive).
+    I2C
+        Koncept: Bruges til at forbinde flere sensorer på en bus, men vi har i kurset kun brugt det til at kommunikere med en temperatur sensor og vores OLED display
+        Data: Bus-struktur, hver enhed har en unik 7-bit adresse
+        Timing: Fungerer synkront. Arduinoen genererer clock-signal
+        Pins: SDA (Serial Data) og SCL (Serial Clock)
+    SPI
+        Koncept: Hurtigste serielle form. Bruges ofte til trådløse moduler og SD-kort hvor store mængder skal flyttes
+        Data: "Full-duplex" kommunikation, betyder at den kan sende og motage data samtidigt. Bruger ikke adresser, enheder vælges med dedikeret ledning (SS)
+        Timing: Fungere synkront via clock forbindelse (SCK) styret af Master-enheden
+        Pins: MOSI (Master Out Slave In), MISO (Master In Slave Out), SCK (Serial Clock) og SS (Slave Select)
+
+Forskelle og ligheder mellem dem:
+    Hastighed: UART er langsommest (115.200 bps), I2C er hurtigt  (100 kHz - 400 kHz) og UART er hurtigst med op til flere MHz hastighed
+
+
+
+---------------------------------------------------
+
+3. Interrupts og brug af polling – fordele og ulemper – hvilke typer interrupts kender du til – hvordan
+kodes polling og hvordan kodes interrupts – Giv et relevant kode eksempel fra opg. 5¸ der virker i
+Atmega2560
+
+---------------------------------------------------
+
+4. Timere – hvordan fungerer en timer – hvad bruges den til. Giv et eksempler på brugen fra jeres
+opg. 5, der virker i Atmega2560.
+
+---------------------------------------------------
+
+5. Forklare en mikrokontroller's arkitektur, hukommelses hierarkiet, registrere, og dens operationer
+herunder - Stak hvad er det og hvornår bruges stakken –– adressering – og data typer. Giv et
+relevant kode eksempel fra opg. 5¸ der virker i Atmega2560.
+
+---------------------------------------------------
+
+6. Forklare C kontrolstrukturer, datastrukturer, funktioner og tilstandsmaskiner – giv relevant kode
+eksempel fra opg. 5
