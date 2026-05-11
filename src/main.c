@@ -114,7 +114,7 @@ int main(void) {
     for (uint8_t i = 0; i <= 3; i++) {
         // Hent den aktuelle PWM værdi fra registret (eller genberegn den)
         // Her genberegner vi den kort for at få duty cycle
-        uint32_t temp_pwm = ((uint32_t)smooth_values[i] * 2000) / 1023 + 500;
+        uint16_t temp_pwm = ((uint32_t)smooth_values[i] * 2000) / 1023 + 500;
         uint16_t duty_x10 = temp_pwm / 20;
 
         // Skriv rå værdi (0-1023)
