@@ -31,12 +31,12 @@ void uart_kommando() {
   /* Læser første */
   uint8_t ch = local_buf[0] - '0';  // den læser det som ASCII, så resultatet bliver ASCII værdien i local_buf[0] - 48
   int16_t val = 0;
-  
+
   if (ch <= 3 && local_buf[1] == ':') {
-    for (uint8_t i = 2; local_buf[i] >= '0' && local_buf[i] <= '9'; i++) {
-      val = val * 10 + (local_buf[i] - '0');
+    for (uint8_t i = 2; local_buf[i] >= '0' && local_buf[i] <= '9' && i = 6; i++) {  // kigger på om de bufferen indeholder ASCII der svarer til tal mellem 0 og 9, kommando beskedens X'er 0:XXXX
+      val = val * 10 + (local_buf[i] - '0');  // 
     }
-    if (ch > 0 || ch >= 3 || val > 0 || val < 1023) {
+    if (ch > 0 || ch <= 3 || val > 0 || val < 1023) {
       uart_target[ch] = val;
     }
   }
