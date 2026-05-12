@@ -109,11 +109,20 @@ int main(void) {
       uint16_t pwm = (uint16_t)(((uint32_t)smooth_values[i] * 2000) / 1023) + 500;
 
       // Opdater registrer
-      if (i == 0) OCR1A = pwm; // behøver ikk wrappe i cli(); og sei(); da AVR ifølge datasheetet har et dedikeret 8-bit TEMP register, så det er kun for READ af 16-bits vi skal, ikke for WRITES.
-      if (i == 1) OCR3A = pwm;
-      if (i == 2) OCR4A = pwm;
-      if (i == 3) OCR5A = pwm;
-
+      switch (i){
+        case 0:
+          OCR1A = pwm; // behøver ikk wrappe i cli(); og sei(); da AVR ifølge datasheetet har et dedikeret 8-bit TEMP register, så det er kun for READ af 16-bits vi skal, ikke for WRITES.
+          break;
+        case 1:
+          OCR3A = pwm;
+          break;
+        case 2:
+          OCR4A = pwm;
+          break;
+        case 3:
+          OCR5A = pwm;
+          break;
+        }
     }
     
     // 3. DISPLAY-LOOP (Opdaterer skærmen samlet)
