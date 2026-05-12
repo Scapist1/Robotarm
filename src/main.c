@@ -105,7 +105,7 @@ int main(void)
         else if (diff < 0)
         {
           int16_t step = (diff / 16) - 1; // Tager højde for nuværende position
-          if (step < -13) step = -13; // capper den på max 13 pr step aka 60 grader pr. 0.2 sekundp
+          if (step < -13) step = -13; // capper den på max 13 pr step aka 60 grader pr. 0.2 sekund
           smooth_values[i] += step;
           if (smooth_values[i] <= uart_target[i])
           { // fanger overshoot den anden vej
