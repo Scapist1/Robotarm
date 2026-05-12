@@ -7,5 +7,3 @@ void init_timer0() {
   TIMSK0 = (1 << OCIE0A); // Enable Timer Compare Interrupt
   TCCR0B = (1 << CS02) | (1 << CS00);  // Start timer med prescaler 1024
 }
-
-
