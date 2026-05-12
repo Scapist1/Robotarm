@@ -113,7 +113,7 @@ int main(void)
       } 
 
       //Joystick 
-      else if (raw_joy < 500 || raw_joy > 524) {
+      else if (raw_joy < 500 || raw_joy > 524) { //i samme if-else for at kun én er aktiv ad gangen
         // uart_active[i] = 0;  //ville få joystick til at kunne afbryde UART bevægelser, men tænker heller vi vil have den altid kører UART færdig
         if (raw_joy > 524) smooth_values[i] += (raw_joy - 512) / 128;
         else smooth_values[i] -= (512 - raw_joy) / 128;
