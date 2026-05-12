@@ -92,14 +92,14 @@ int main(void)
       /* Easing logik til at ændre tal fra monitor eller joystick løbende */
       // UART
       if (uart_active[i]) {
-        int16_t diff = uart_target[i] - smooth_values[i]; //Tager højde for nuværende position
-        if (diff > 0) {
+        int16_t diff = uart_target[i] - smooth_values[i]; //Rent faktisk bevægelsen. Tager højde for nuværende position
+        if (diff > 0) { //fanger hvis den er overshootet og korrigerer så vi stadig rammer target 
           smooth_values[i] += (diff / 16) + 1;
           if (smooth_values[i] >= uart_target[i]) {
             smooth_values[i] = uart_target[i]; 
             uart_active[i] = 0; 
           }
-        } else if (diff < 0) {
+        } else if (diff < 0) { //fanger overshoot den anden vej
           smooth_values[i] += (diff / 16) - 1;
           if (smooth_values[i] <= uart_target[i]) { 
             smooth_values[i] = uart_target[i];
