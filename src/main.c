@@ -110,6 +110,7 @@ int main(void) {
     }
     
     // 3. DISPLAY-LOOP (Opdaterer skærmen samlet)
+    for (uint8_t k = 0; k <= 9; k++){
     for (uint8_t i = 0; i <= 3; i++) {
         // Hent den aktuelle PWM værdi fra registret (eller genberegn den)
         // Her genberegner vi den kort for at få duty cycle
@@ -124,7 +125,8 @@ int main(void) {
         sprintf(buffer, "%2d.%1d%%", duty_x10 / 10, duty_x10 % 10);
         sendStrXY(buffer, i + 2, 10);
     }
+  }
 
-    _delay_ms(10); // Gør easing jævn og forhindrer OLED I2C spam
+    _delay_ms(10); // Gør easing jævn 
   }
 }
