@@ -19,7 +19,7 @@ static uint8_t dance_reps = 0;
 static const int16_t dance_back[3] = {767, 460, 485}; // smooth positioner
 static const int16_t dance_fwd[3] = {869, 562, 588};
 
-static void start_dance(void)
+void start_dance(void)
 { // får den i position
     dance_reps = 0;
     dance_state = dance_s_forward;
@@ -31,7 +31,7 @@ static void start_dance(void)
     }
 }
 
-static void dance(void)
+void dance_FSM(void)
 {
     if (dance_state == dance_s_off)
         return;

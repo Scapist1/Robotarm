@@ -4,6 +4,6 @@
 #include "stdint.h"
 
 void start_dance(void);
-void dance(void);
+void dance_FSM(void);
 
 #endif

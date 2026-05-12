@@ -139,7 +139,7 @@ int main(void)
           break;
         }
     }
-    dance();
+    dance_FSM(); //Tjekker hvilken state dance_FSM er i, hvis den er blevet "aktiveret" fra uart_kommando går den i gang med dansesekvensen
 
     // 3. DISPLAY-LOOP (Opdaterer skærmen samlet)
     if (++display_counter >= 10){ // så skærmen ikke har samme frekvens som servo - unødvendigt
