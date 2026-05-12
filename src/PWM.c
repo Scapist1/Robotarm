@@ -40,17 +40,17 @@ void init_ph_frPWM_4()  {   // Timer 5
 
 
 void PWM_ph_fr_init() {
-            // 1. Sluk timere (nulstil control registers)
-            TCCR1A = 0; TCCR1B = 0;
-            TCCR3A = 0; TCCR3B = 0;
-            TCCR4A = 0; TCCR4B = 0;
-            TCCR5A = 0; TCCR5B = 0;
+  // 1. Sluk timere (nulstil control registers)
+  TCCR1A = 0; TCCR1B = 0;
+  TCCR3A = 0; TCCR3B = 0;
+  TCCR4A = 0; TCCR4B = 0;
+  TCCR5A = 0; TCCR5B = 0;
 
-            // 2. Nulstil selve tælleren (forhindrer overflow-glitches)
-            TCNT1 = 0; 
-            TCNT3 = 0; 
-            TCNT4 = 0; 
-            TCNT5 = 0;
+  // 2. Nulstil selve tælleren (forhindrer overflow-glitches)
+  TCNT1 = 0; 
+  TCNT3 = 0; 
+  TCNT4 = 0; 
+  TCNT5 = 0;
 
-                init_ph_frPWM_1(); init_ph_frPWM_2(); init_ph_frPWM_3(); init_ph_frPWM_4();
+      init_ph_frPWM_1(); init_ph_frPWM_2(); init_ph_frPWM_3(); init_ph_frPWM_4();
 }
