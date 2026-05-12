@@ -22,7 +22,7 @@ void uart_kommando() {
     local_buf[i] = rx_buffer[i]; // skriver alle 16 symboler fra rx_buffer over i local buffer, når ny_data_klar flaget bliver højt i while loopet (main)
   ny_data_klar = 0; // nulstiller, så vi er klar til næste besked
   sei();
-  
+
   /* Læser første */
   uint8_t ch = local_buf[0] - '0';  // den læser det som ASCII, så resultatet bliver ASCII værdien i local_buf[0] - 48
   int32_t val = 0;
@@ -31,7 +31,7 @@ void uart_kommando() {
     for (uint8_t i = 2; local_buf[i] >= '0' && local_buf[i] <= '9' && i < 6; i++) {  // kigger på om de bufferen indeholder ASCII der svarer til tal mellem 0 og 9, kommando beskedens X'er 0:XXXX
       val = val * 10 + (local_buf[i] - '0');  // bygger et 4 ciffer tal op ved at regne ASCII værdien fra buffer om til tal
     }
-    if (ch >= 0 && ch <= 3 && val >= 0 && val <= 1023) {
+    if (val <= 1023) {
       uart_target[ch] = val;
     }
   }
@@ -126,11 +126,5 @@ int main(void) {
     }
 
     _delay_ms(10); // Gør easing jævn og forhindrer OLED I2C spam
-
-    // --- Display opdatering ---
-    for(uint8_t i = 0; i <= 3; i++) {
-      sprintf(buffer, "%4d", smooth_values[i]);
-      sendStrXY(buffer, i + 2, 3);
-    }
   }
 }
