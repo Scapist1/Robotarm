@@ -13,7 +13,8 @@
 
 // Globale variabler
 int16_t smooth_values[4] = {512, 512, 512, 512};
-int16_t uart_target[4]   = {-1, -1, -1, -1};
+int16_t uart_target[4]   = {0, 0, 0, 0};
+int16_t uart_active[4]   = {0, 0, 0, 0};
 
 /* Benyttes i while loopet til at læse data fra UART til de rigtige steder når ny_data_klar flaget bliver sat højt */
 void uart_kommando() {
@@ -35,6 +36,7 @@ void uart_kommando() {
     }
     if (val <= 1023) {
       uart_target[ch] = val;
+      uart_active[ch] = 1;
     }
   }
 }
@@ -74,26 +76,28 @@ int main(void) {
 
       /* Easing logik til at ændre tal fra monitor eller joystick løbende */
       // UART
-      if (uart_target[i] >= 0) {
+      if (uart_active[i]) {
         int16_t diff = uart_target[i] - smooth_values[i]; //Tager højde for nuværende position
         if (diff > 0) {
           smooth_values[i] += (diff / 16) + 1;
           if (smooth_values[i] >= uart_target[i]) {
             smooth_values[i] = uart_target[i]; 
-            uart_target[i] = -1; 
+            uart_active[i] = 0; 
           }
         } else if (diff < 0) {
           smooth_values[i] += (diff / 16) - 1;
           if (smooth_values[i] <= uart_target[i]) { 
-            smooth_values[i] = uart_target[i]; 
-            uart_target[i] = -1; 
+            smooth_values[i] = uart_target[i];
+            uart_active[i] = 0;
           }
-        } else { uart_target[i] = -1; }
+        } else {
+          uart_active[i] = 0;
+        }
       } 
 
       //Joystick 
       else if (raw_joy < 500 || raw_joy > 524) {
-       // uart_target[i] = -1; //ville få joystick til at kunne afbryde UART bevægelser, men tænker heller vi vil have den altid kører UART færdig
+        // uart_active[i] = 0;  //ville få joystick til at kunne afbryde UART bevægelser, men tænker heller vi vil have den altid kører UART færdig
         if (raw_joy > 524) smooth_values[i] += (raw_joy - 512) / 128;
         else smooth_values[i] -= (512 - raw_joy) / 128;
 
