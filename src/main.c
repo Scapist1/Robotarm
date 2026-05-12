@@ -15,6 +15,7 @@
 int16_t smooth_values[4] = {512, 512, 512, 512};
 int16_t uart_target[4]   = {0, 0, 0, 0};
 int16_t uart_active[4]   = {0, 0, 0, 0};
+static uint8_t display_counter = 0;
 
 /* Benyttes i while loopet til at læse data fra UART til de rigtige steder når ny_data_klar flaget bliver sat højt */
 void uart_kommando() {
@@ -40,6 +41,8 @@ void uart_kommando() {
     }
   }
 }
+
+
 
 int main(void) {
   char buffer[20];
@@ -126,7 +129,7 @@ int main(void) {
     }
     
     // 3. DISPLAY-LOOP (Opdaterer skærmen samlet)
-    for (uint8_t k = 0; k <= 9; k++){ // så skærmen ikke har samme frekvens som servo - unødvendigt
+    if (++display_counter >= 10){ // så skærmen ikke har samme frekvens som servo - unødvendigt
     for (uint8_t i = 0; i <= 3; i++) {
         // Hent den aktuelle PWM værdi fra registret (eller genberegn den)
         // Her genberegner vi den kort for at få duty cycle
