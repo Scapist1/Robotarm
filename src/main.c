@@ -8,14 +8,89 @@
 #include "ADC.h"
 #include "timer.h"
 #include "PWM.h"
+#include "string.h"
 #define BAUD 115200
 #define UBRR_VAL ((F_CPU / 8 / BAUD) - 1)
 
 // Globale variabler
 int16_t smooth_values[4] = {512, 512, 512, 512};
-int16_t uart_target[4]   = {0, 0, 0, 0};
-int16_t uart_active[4]   = {0, 0, 0, 0};
-static uint8_t display_counter = 0;
+uint16_t uart_target[4]   = {0, 0, 0, 0};
+uint8_t uart_active[4]   = {0, 0, 0, 0};
+
+
+// Dance baby
+typedef enum
+{
+  dance_s_off,
+  dance_s_forward,
+  dance_s_back
+} dance_state_t;
+
+static dance_state_t dance_state = dance_s_off;
+static uint8_t dance_reps = 0;
+
+static const int16_t dance_back[3] = {767, 460, 485}; // smooth positioner
+static const int16_t dance_fwd[3] = {869, 562, 588};
+
+static void start_dance(void)
+{ // får den i position
+  dance_reps = 0;
+  dance_state = dance_s_forward;
+
+  for (uint8_t i = 0; i < 3; i++)
+  {
+    uart_target[i] = dance_fwd[i];
+    uart_active[i] = 1;
+  }
+}
+
+static void dance(void)
+{
+  if (dance_state == dance_s_off)
+    return;
+
+  // checker om den har "homet"
+  if (uart_active[0] || uart_active[1] || uart_active[2])
+    return;
+
+  // Når den er "homet", gå videre
+  switch (dance_state)
+  {
+  case dance_s_forward:
+
+    for (uint8_t i = 0; i < 3; i++)
+    {
+      uart_target[i] = dance_back[i];
+      uart_active[i] = 1;
+    }
+    dance_state = dance_s_back;
+    break;
+
+  case dance_s_back:
+    // vi er tilbage, tælles som én omgang.
+    dance_reps++;
+    if (dance_reps >= 4) // gør 4 gange
+    {
+      // Done
+      dance_state = dance_s_off;
+    }
+    else
+    {
+      // tag en svingom mere
+      for (uint8_t i = 0; i < 3; i++)
+      {
+        uart_target[i] = dance_fwd[i];
+        uart_active[i] = 1;
+      }
+      dance_state = dance_s_forward;
+    }
+    break;
+
+  default:
+    dance_state = dance_s_off;
+    break;
+  }
+}
 
 /* Benyttes i while loopet til at læse data fra UART til de rigtige steder når ny_data_klar flaget bliver sat højt */
 void uart_kommando() {
@@ -26,6 +101,12 @@ void uart_kommando() {
     local_buf[i] = rx_buffer[i]; // skriver alle 16 symboler fra rx_buffer over i local buffer, når ny_data_klar flaget bliver højt i while loopet (main)
   ny_data_klar = 0; // nulstiller, så vi er klar til næste besked
   sei();
+
+  if (strcmp(local_buf, "dance") == 0) // lyt for dance kommandoen
+  {
+    start_dance();
+    return;
+  }
 
   /* Læser første */
   uint8_t ch = local_buf[0] - '0';  // den læser det som ASCII, så resultatet bliver ASCII værdien i local_buf[0] - 48
@@ -44,7 +125,8 @@ void uart_kommando() {
 
 
 
-int main(void) {
+int main(void)
+{
   char buffer[20];
 
   init_ADC();
@@ -58,6 +140,8 @@ int main(void) {
   uart0_Init(UBRR_VAL); // 115200 baud
 
   printString("[ Skriv fx 0:1023 for servo 0, position 1023 ]\r\n");
+
+  static uint8_t display_counter = 0;
 
   /* Sætter tal indikator ud for værdier på display (0, 1, 2, 3) */
   for(uint8_t i = 0; i <= 3; i++) {
@@ -127,10 +211,13 @@ int main(void) {
           break;
         }
     }
-    
+    dance();
+
     // 3. DISPLAY-LOOP (Opdaterer skærmen samlet)
     if (++display_counter >= 10){ // så skærmen ikke har samme frekvens som servo - unødvendigt
-    for (uint8_t i = 0; i <= 3; i++) {
+      display_counter = 0;
+      for (uint8_t i = 0; i <= 3; i++)
+      {
         // Hent den aktuelle PWM værdi fra registret (eller genberegn den)
         // Her genberegner vi den kort for at få duty cycle
         uint16_t temp_pwm = ((uint32_t)smooth_values[i] * 2000) / 1023 + 500;
@@ -143,7 +230,7 @@ int main(void) {
         // Skriv procent (f.eks. 7.5%)
         sprintf(buffer, "%2d.%1d%%", duty_x10 / 10, duty_x10 % 10);
         sendStrXY(buffer, i + 2, 10);
-    }
+      }
   }
 
     _delay_ms(10); // Gør easing jævn og holder display fra at flimre
