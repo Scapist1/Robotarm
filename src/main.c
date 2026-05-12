@@ -16,9 +16,8 @@
 
 // Globale variabler
 int16_t smooth_values[4] = {512, 512, 512, 512};
-uint16_t uart_target[4]   = {0, 0, 0, 0};
-uint8_t uart_active[4]   = {0, 0, 0, 0};
-
+uint16_t uart_target[4]   = {512, 512, 512, 512};
+uint8_t uart_active[4]   = {1, 1, 1, 1};
 
 /* Benyttes i while loopet til at læse data fra UART til de rigtige steder når ny_data_klar flaget bliver sat højt */
 void uart_kommando() {
@@ -50,8 +49,6 @@ void uart_kommando() {
     }
   }
 }
-
-
 
 int main(void)
 {
