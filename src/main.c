@@ -8,6 +8,8 @@
 #include "ADC.h"
 #include "timer.h"
 #include "PWM.h"
+#define BAUD 115200
+#define UBRR_VAL ((F_CPU / 8 / BAUD) - 1)
 
 // Globale variabler
 int16_t smooth_values[4] = {512, 512, 512, 512};
@@ -48,8 +50,8 @@ int main(void) {
   I2C_Init();
   clear_display();
   InitializeDisplay();
-  uart0_Init(16); // 115200 baud
-  
+  uart0_Init(UBRR_VAL); // 115200 baud
+
   printString("[ Skriv fx 0:1023 for servo 0, position 1023 ]\r\n");
 
   /* Sætter tal indikator ud for værdier på display (0, 1, 2, 3) */
@@ -91,6 +93,7 @@ int main(void) {
 
       //Joystick 
       else if (raw_joy < 500 || raw_joy > 524) {
+       // uart_target[i] = -1; //ville få joystick til at kunne afbryde UART bevægelser, men tænker heller vi vil have den altid kører UART færdig
         if (raw_joy > 524) smooth_values[i] += (raw_joy - 512) / 128;
         else smooth_values[i] -= (512 - raw_joy) / 128;
 
@@ -110,7 +113,7 @@ int main(void) {
     }
     
     // 3. DISPLAY-LOOP (Opdaterer skærmen samlet)
-    for (uint8_t k = 0; k <= 9; k++){
+    for (uint8_t k = 0; k <= 9; k++){ // så skærmen ikke har samme frekvens som servo - unødvendigt
     for (uint8_t i = 0; i <= 3; i++) {
         // Hent den aktuelle PWM værdi fra registret (eller genberegn den)
         // Her genberegner vi den kort for at få duty cycle
@@ -127,6 +130,6 @@ int main(void) {
     }
   }
 
-    _delay_ms(10); // Gør easing jævn 
+    _delay_ms(10); // Gør easing jævn og holder display fra at flimre
   }
 }
