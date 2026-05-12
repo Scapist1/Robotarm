@@ -5,7 +5,6 @@
 // Phase og Frequency Correct PWM (WGM13, prescale 8)
 // ICR = 20000 → 50Hz → 20ms periode, passer til servomotorer
 
-
 void init_ph_frPWM_1()  {   // Timer 1
   DDRB |= (1 << PB5); // pin 11
   TCCR1A = (1 << COM1A1);  // Clear OC1A ved Compare Match på opadgående. Set OC1A ved Compare Match på nedadgående.
